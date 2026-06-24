@@ -9,6 +9,9 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter, log: ["query"] });
 
+// ここを追加！prisma の中に何が入っているか表示させるのじゃ
+console.log("Prisma の中身を確認するぞ:", Object.keys(prisma));
+
 const app = express();
 const PORT = process.env.PORT || 8888;
 
@@ -26,10 +29,15 @@ app.get("/", async (req, res) => {
 
 // ユーザー追加：フォームからのデータを受け取って DB に保存する
 app.post("/users", async (req, res) => {
-  const name = req.body.name;
+  const { name, age } = req.body;
   if (name) {
-    const newUser = await prisma.user.create({ data: { name } });
-    console.log("追加しました:", newUser);
+    // age があれば数値に変換して保存する
+    await prisma.user.create({
+      data: {
+        name,
+        age: age ? parseInt(age) : null,
+      },
+    });
   }
   res.redirect("/");
 });
